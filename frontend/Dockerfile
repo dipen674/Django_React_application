@@ -12,9 +12,6 @@ RUN npm install
 # Copy source code
 COPY . .
 
-# Install http-proxy-middleware if not already in package.json
-RUN npm install http-proxy-middleware --save
-
 # Expose port
 EXPOSE 3000
 

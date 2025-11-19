@@ -4,7 +4,7 @@ from django.contrib.auth import authenticate
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.authentication import TokenAuthentication
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny  # ADDED AllowAny
 from rest_framework.authtoken.models import Token
 from rest_framework import status
 from django.conf import settings
@@ -30,6 +30,8 @@ from .models import (
 )
 
 class UserView(APIView):
+    permission_classes = [AllowAny]  # ADDED THIS LINE - allows registration without auth
+
     def post(self, request):
         serializer = UserSerializer(data=request.data)
 
@@ -67,7 +69,9 @@ class GetAuthUserView(APIView):
         return Response({'token': token.key}, status=status.HTTP_200_OK)
 
 class ProfilesView(APIView):
-     def get(self, request):
+    permission_classes = [AllowAny]  # ADDED - allows public access to profiles
+    
+    def get(self, request):
         profiles = Profile.objects.all()
         profile_data = GetProfileSerializer(profiles, many=True).data
         return Response(data=profile_data, status=status.HTTP_200_OK)
@@ -109,6 +113,8 @@ class ProfileView(APIView):
 
 
 class SingleProfileView(APIView):
+    permission_classes = [AllowAny]  # ADDED - allows public access to single profiles
+    
     def get(self, request, *args, **kwargs):
         try:
             user = User.objects.get(id=kwargs.get('id'))
@@ -166,6 +172,8 @@ class EducationView(APIView):
             return Response(data={'error': "No education found"}, status=status.HTTP_404_NOT_FOUND)
 
 class GitProfileView(APIView):
+    permission_classes = [AllowAny]  # ADDED - allows public access to GitHub profiles
+    
     def get(self, request, *args, **kwargs):
         username = kwargs.get('username')
         client_id = settings.GIT_CLIENT_ID
@@ -269,4 +277,3 @@ class CommentView(APIView):
 
         except ObjectDoesNotExist:
             return Response({'error': "No comment found"}, status=status.HTTP_404_NOT_FOUND)
-
