@@ -1,30 +1,30 @@
-FROM python:3.9-slim
+# Stage 1: Builder
 
-# Set environment variables
+FROM python:3.9-slim AS builder
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
-
-# Set work directory
 WORKDIR /app
-
-# Install system dependencies
 RUN apt-get update && apt-get install -y \
-    gcc \
-    && rm -rf /var/lib/apt/lists/*
-
-# Copy requirements and install Python dependencies
+	gcc \
+	libpq-dev \
+	&& rm -rf /var/lib/apt/lists/*
 COPY requirements.txt .
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 
-# Copy project
+# Stage 2: Production (Runtime)
+
+FROM python:3.9-slim AS production 
+WORKDIR /app
+
+# 🎯 FIX 2: Install runtime dependency and clean up cache in the same layer
+RUN apt-get update && apt-get install -y \
+    libpq5 \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=builder /usr/local/lib/python3.9/site-packages /usr/local/lib/python3.9/site-packages
+COPY --from=builder /usr/local/bin/gunicorn /usr/local/bin/
 COPY . .
 
-# Create database directory (for SQLite)
-RUN mkdir -p /app/db
-
-# Expose port
 EXPOSE 8000
-
-# Run migrations and start server
-CMD ["sh", "-c", "python manage.py makemigrations devconnector && python manage.py migrate && python manage.py runserver 0.0.0.0:8000"]
+CMD ["sh", "-c", "sleep 5 && python manage.py migrate --no-input && gunicorn mysite.wsgi:application --bind 0.0.0.0:8000"]

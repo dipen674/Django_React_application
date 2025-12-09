@@ -1,26 +1,37 @@
 services:
+
+  db:
+    container_name: devconnector_db
+    image: postgres:13-alpine
+    restart: always
+    env_file:
+      - ./db-secrets.env 
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+
   backend:
-    build: 
-      context: ./backend
-      dockerfile: Dockerfile
+    container_name: devconnector_backend
+    build: ./backend 
     ports:
       - "8000:8000"
     volumes:
       - ./backend:/app
-    environment:
-      - DEBUG=True
 
+    env_file:
+      - ./db-secrets.env 
+    depends_on:
+      - db
+    image: django_backend
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
+    container_name: devconnector_frontend
+    build: ./frontend
     ports:
-      - "3000:3000"
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
-    environment:
-      - CHOKIDAR_USEPOLLING=true
-      - REACT_APP_API_URL=http://backend:8000
+      - "3000:80"
+    env_file:
+      - ./frontend/frontend.env
     depends_on:
       - backend
+    image: nginx_frontend
+
+volumes:
+  postgres_data:
