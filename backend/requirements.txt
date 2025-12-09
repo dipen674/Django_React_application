@@ -14,5 +14,6 @@ sqlparse==0.3.1
 uritemplate==3.0.1
 urllib3==1.25.8
 python-dotenv
+psycopg2-binary
 dj-database-url
 Gunicorn==20.0.4

@@ -22,9 +22,15 @@ RUN apt-get update && apt-get install -y \
     libpq5 \
     && rm -rf /var/lib/apt/lists/*
 
+RUN groupadd -r appuser && useradd -r -g appuser -d /app -s /sbin/nologin -c "App User" appuser
+
+RUN chown -R appuser:appuser /app
+
 COPY --from=builder /usr/local/lib/python3.9/site-packages /usr/local/lib/python3.9/site-packages
 COPY --from=builder /usr/local/bin/gunicorn /usr/local/bin/
 COPY . .
+
+USER appuser
 
 EXPOSE 8000
 CMD ["sh", "-c", "sleep 5 && python manage.py migrate --no-input && gunicorn mysite.wsgi:application --bind 0.0.0.0:8000"]

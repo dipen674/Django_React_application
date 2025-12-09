@@ -26,7 +26,7 @@ services:
     container_name: devconnector_frontend
     build: ./frontend
     ports:
-      - "3000:80"
+      - "3000:8080"
     env_file:
       - ./frontend/frontend.env
     depends_on:
